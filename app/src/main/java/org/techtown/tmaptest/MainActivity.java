@@ -1,7 +1,5 @@
 package org.techtown.tmaptest;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,11 +8,13 @@ import android.graphics.PointF;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.skt.Tmap.TMapData;
 import com.skt.Tmap.TMapGpsManager;
@@ -43,8 +43,10 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
 
     TMapPOIItem POIItem = new TMapPOIItem();
 
-    int testNum = 1;
-
+    ConstraintLayout mainbuttonLayout;
+    ConstraintLayout navibuttonLayout;
+    ConstraintLayout lecbuttonLayout;
+    ConstraintLayout etcbuttonLayout;
 
 
     @Override
@@ -59,9 +61,10 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
         // API Key
         tMapView.setSKTMapApiKey(API_Key);
 
-        //TMapMarkerItem markerItem1 = new TMapMarkerItem();
-
-        //TMapPoint tMapPoint1 = new TMapPoint(37.3004, 127.0358); // 경기대학교 수원캠퍼스
+        mainbuttonLayout = findViewById(R.id.MainButtonLayout);
+        navibuttonLayout = findViewById(R.id.NaviButtonLayout);
+        lecbuttonLayout = findViewById(R.id.LecButtonLayout);
+        etcbuttonLayout = findViewById(R.id.EtcButtonLayout);
 
         // 마커 아이콘
         Bitmap bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.iconfinder_icons_pin);
@@ -112,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
         //getPOIPoint(arrPOI);
 
         //길 안내 버튼
-        Button button = findViewById(R.id.button);
+        /*Button button = findViewById(R.id.btn1);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -120,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
                 //getPOIPoint(arrPOI);
                 drawPolyLine(Now, tMapPointEnd);
             }
-        });
+        });*/
 
         //버튼별 경로탐색
         drawLineButton();
@@ -220,6 +223,49 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
         tMapView.setCenterPoint(location.getLongitude(), location.getLatitude());
     }
 
+    // 뒤로가기 키 이벤트 처리
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event){
+        if(keyCode == KeyEvent.KEYCODE_BACK){
+            if(navibuttonLayout.getVisibility() == View.VISIBLE){
+                navibuttonLayout.setVisibility(View.INVISIBLE);
+                mainbuttonLayout.setVisibility(View.VISIBLE);
+                return true;
+            }
+            if(lecbuttonLayout.getVisibility() == View.VISIBLE){
+                lecbuttonLayout.setVisibility(View.INVISIBLE);
+                navibuttonLayout.setVisibility(View.VISIBLE);
+                return true;
+            }
+            if(etcbuttonLayout.getVisibility() == View.VISIBLE){
+                etcbuttonLayout.setVisibility(View.INVISIBLE);
+                navibuttonLayout.setVisibility(View.VISIBLE);
+                return true;
+            }
+        }
+        return false;
+    }
+    public void onButtonNaviClicked(View v){
+        mainbuttonLayout.setVisibility(View.INVISIBLE);
+        navibuttonLayout.setVisibility(View.VISIBLE);
+    }
+    public void onButtonBackClicked(View v){
+        navibuttonLayout.setVisibility(View.INVISIBLE);
+        mainbuttonLayout.setVisibility(View.VISIBLE);
+    }
+
+    public void onButtonLecClicked(View v){
+        navibuttonLayout.setVisibility(View.INVISIBLE);
+        lecbuttonLayout.setVisibility(View.VISIBLE);
+    }
+
+    public void onButtonEtcClicked(View v){
+        navibuttonLayout.setVisibility(View.INVISIBLE);
+        etcbuttonLayout.setVisibility(View.VISIBLE);
+    }
+
+
+
     private void drawPolyLine(TMapPoint startPoint, TMapPoint endPoint){
 
         new Thread(){
@@ -239,8 +285,7 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
         }.start();
     }
 
-    private void setMultiMarkers(ArrayList<TMapPoint> arrTPoint, ArrayList<String> arrTitle,
-                                 ArrayList<String> arrAddress)
+    private void setMultiMarkers(ArrayList<TMapPoint> arrTPoint)
     {
         for( int i = 0; i < arrTPoint.size(); i++ )
         {
@@ -273,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
     }
 
 
-    private void searchPOI(ArrayList<String> arrPOI) {
+    /*private void searchPOI(ArrayList<String> arrPOI) {
         final TMapData tMapData = new TMapData();
         final ArrayList<TMapPoint> arrTMapPoint = new ArrayList<>();
         final ArrayList<String> arrTitle = new ArrayList<>();
@@ -295,7 +340,7 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
                 }
             });
         }
-    }
+    }*/
 
 
     private void getPOIPoint(ArrayList<String> arrPOI, int bldNum){
@@ -316,13 +361,22 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
                             tMapPOIItem.middleAddrName + " " + tMapPOIItem.lowerAddrName);
                     System.out.println(arrAddr);
                     tMapPointEnd = tMapPOIItem.getPOIPoint();
-                    setMultiMarkers(arrTMapPoint, arrTitle, arrAddr);
+                    setMultiMarkers(arrTMapPoint);
                     drawPolyLine(Now, tMapPointEnd);
                 }
             });
         //}
 
     }
+
+    private void getPoint(ArrayList<TMapPoint> arrPoint, int bldNum){
+        final ArrayList<TMapPoint> arrTMapPoint = new ArrayList<>();
+        TMapPoint Now = new TMapPoint(tMapGPS.getLocation().getLatitude(), tMapGPS.getLocation().getLongitude());
+        arrTMapPoint.add(arrPoint.get(bldNum));
+        setMultiMarkers(arrTMapPoint);
+        drawPolyLine(Now, arrPoint.get(bldNum));
+    }
+
 
     //버튼으로 길 찾기 함수 - 테스트용
     private void drawLineButton(){
@@ -336,6 +390,7 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
         arrPOI.add("경기대학교 수원캠퍼스 광교관");
         arrPOI.add("경기대학교 수원캠퍼스 집현관");
         arrPOI.add("경기대학교 수원캠퍼스 육영관");
+        arrPOI.add("경기대학교 수원캠퍼스 호연관");
         arrPOI.add("경기대학교 수원캠퍼스 종합강의동");
 
         //searchPOI(arrPOI);
@@ -343,37 +398,163 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
         //TMapPoint btn1Point = new TMapPoint(37.29992, 127.03390);
         //TMapPoint btn2Point = new TMapPoint(37.29959, 127.03432);
 
-        Button btn1 = findViewById(R.id.btn1);
-        Button btn2 = findViewById(R.id.btn2);
-        Button btn3 = findViewById(R.id.btn3);
-        Button btn4 = findViewById(R.id.btn4);
+        ArrayList<TMapPoint> arrPoint = new ArrayList<>();
+        arrPoint.add(0, new TMapPoint(37.2985, 127.0396));  //기숙사정류장
+        arrPoint.add(1, new TMapPoint(37.3017, 127.0340));  //매표소정류장
+        arrPoint.add(2, new TMapPoint(37.3012, 127.0344));  //경기탑 정류장
+        arrPoint.add(3, new TMapPoint(37.2988, 127.0371));  //테니스장 정류장
+        arrPoint.add(4, new TMapPoint(37.3035, 127.0340));  //9강 정류장
+        arrPoint.add(5, new TMapPoint(37.3007, 127.0444));  //광교역 정류장
+        arrPoint.add(6, new TMapPoint(37.3005, 127.0371));  //e스퀘어
+        arrPoint.add(7, new TMapPoint(37.3011, 127.0361));  //감성코어
+
+
+        Button lec1 = findViewById(R.id.lec_1);
+        Button lec2 = findViewById(R.id.lec_2);
+        Button lec3 = findViewById(R.id.lec_3);
+        Button lec4 = findViewById(R.id.lec_4);
+        Button lec5 = findViewById(R.id.lec_5);
+        Button lec6 = findViewById(R.id.lec_6);
+        Button lec7 = findViewById(R.id.lec_7);
+        Button lec8 = findViewById(R.id.lec_8);
+        Button lec9 = findViewById(R.id.lec_9);
+        Button lec10 = findViewById(R.id.lec_10);
+        Button etc1 = findViewById(R.id.etc1);
+        Button etc2 = findViewById(R.id.etc2);
+        Button etc3 = findViewById(R.id.etc3);
+        Button etc4 = findViewById(R.id.etc4);
+        Button etc5 = findViewById(R.id.etc5);
+        Button etc6 = findViewById(R.id.etc6);
+        Button etc7 = findViewById(R.id.etc7);
+        Button etc8 = findViewById(R.id.etc8);
+
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 TMapPoint Now = new TMapPoint(tMapGPS.getLocation().getLatitude(), tMapGPS.getLocation().getLongitude());
                 switch (v.getId())
                 {
-                    case R.id.btn1:
+                    case R.id.lec_1:
                         getPOIPoint(arrPOI, 0);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        lecbuttonLayout.setVisibility(View.INVISIBLE);
                         break;
-                    case R.id.btn2:
+                    case R.id.lec_2:
                         getPOIPoint(arrPOI, 1);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        lecbuttonLayout.setVisibility(View.INVISIBLE);
                         break;
-                    case R.id.btn3:
+                    case R.id.lec_3:
                         getPOIPoint(arrPOI, 2);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        lecbuttonLayout.setVisibility(View.INVISIBLE);
                         break;
-                    case R.id.btn4:
+                    case R.id.lec_4:
                         getPOIPoint(arrPOI, 3);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        lecbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.lec_5:
+                        getPOIPoint(arrPOI, 4);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        lecbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.lec_6:
+                        getPOIPoint(arrPOI, 5);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        lecbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.lec_7:
+                        getPOIPoint(arrPOI, 6);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        lecbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.lec_8:
+                        getPOIPoint(arrPOI, 7);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        lecbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.lec_9:
+                        getPOIPoint(arrPOI, 8);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        lecbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.lec_10:
+                        getPOIPoint(arrPOI, 9);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        lecbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.etc1:
+                        //getPOIPoint(arrPOI, 3);
+                        getPoint(arrPoint, 0);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        etcbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.etc2:
+                        //getPOIPoint(arrPOI, 3);
+                        getPoint(arrPoint, 1);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        etcbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.etc3:
+                        //getPOIPoint(arrPOI, 3);
+                        getPoint(arrPoint, 2);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        etcbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.etc4:
+                        //getPOIPoint(arrPOI, 3);
+                        getPoint(arrPoint, 3);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        etcbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.etc5:
+                        //getPOIPoint(arrPOI, 3);
+                        getPoint(arrPoint, 4);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        etcbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.etc6:
+                        //getPOIPoint(arrPOI, 3);
+                        getPoint(arrPoint, 5);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        etcbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.etc7:
+                        //getPOIPoint(arrPOI, 3);
+                        getPoint(arrPoint, 6);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        etcbuttonLayout.setVisibility(View.INVISIBLE);
+                        break;
+                    case R.id.etc8:
+                        //getPOIPoint(arrPOI, 3);
+                        getPoint(arrPoint, 7);
+                        mainbuttonLayout.setVisibility(View.VISIBLE);
+                        etcbuttonLayout.setVisibility(View.INVISIBLE);
                         break;
 
                 }
             }
         };
 
-        btn1.setOnClickListener(listener);
-        btn2.setOnClickListener(listener);
-        btn3.setOnClickListener(listener);
-        btn4.setOnClickListener(listener);
+        lec1.setOnClickListener(listener);
+        lec2.setOnClickListener(listener);
+        lec3.setOnClickListener(listener);
+        lec4.setOnClickListener(listener);
+        lec5.setOnClickListener(listener);
+        lec6.setOnClickListener(listener);
+        lec7.setOnClickListener(listener);
+        lec8.setOnClickListener(listener);
+        lec9.setOnClickListener(listener);
+        lec10.setOnClickListener(listener);
+        etc1.setOnClickListener(listener);
+        etc2.setOnClickListener(listener);
+        etc3.setOnClickListener(listener);
+        etc4.setOnClickListener(listener);
+        etc5.setOnClickListener(listener);
+        etc6.setOnClickListener(listener);
+        etc7.setOnClickListener(listener);
+        etc8.setOnClickListener(listener);
     }
 
 }
