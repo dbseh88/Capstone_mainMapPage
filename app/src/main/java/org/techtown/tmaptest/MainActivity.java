@@ -8,10 +8,12 @@ import android.graphics.PointF;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -23,6 +25,10 @@ import com.skt.Tmap.TMapPOIItem;
 import com.skt.Tmap.TMapPoint;
 import com.skt.Tmap.TMapPolyLine;
 import com.skt.Tmap.TMapView;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
 
@@ -39,7 +45,8 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
 
     TMapPoint tMapPointStart = null;
     TMapPoint tMapPointEnd = null;
-    double Distance = 0;
+    String Distance = null;
+    String Time = null;
 
     TMapPOIItem POIItem = new TMapPOIItem();
 
@@ -276,13 +283,33 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
                     tMapPolyLine.setLineColor(Color.BLUE);
                     tMapPolyLine.setLineWidth(2);
                     tMapView.addTMapPolyLine("Line1", tMapPolyLine);
-                    Distance = tMapPolyLine.getDistance();
+
+                    new TMapData().findPathDataAllType(TMapData.TMapPathType.PEDESTRIAN_PATH, startPoint, endPoint, new TMapData.FindPathDataAllListenerCallback(){
+                        @Override
+                        public void onFindPathDataAll(Document document) {
+                            Element root = document.getDocumentElement();
+                            NodeList nodeListPlacemark = root.getElementsByTagName("Document");
+                            for( int i=0; i< nodeListPlacemark.getLength();i++){
+
+                                NodeList Dis = root.getElementsByTagName("tmap:totalDistance");
+                                Distance = Dis.item(0).getChildNodes().item(0).getNodeValue();
+                                NodeList time = root.getElementsByTagName("tmap:totalTime");
+                                Time = time.item(0).getChildNodes().item(0).getNodeValue();
+                                int min = Integer.parseInt(Time)/60;
+                                int sec = Integer.parseInt(Time)%60;
+                                TextView text = (TextView)findViewById(R.id.textTest);
+                                text.setText("거리 : " + Distance + "m 시간 : " + min + "분 " + sec + "초");
+                                Log.d("debug", "거리 : " + Distance + "m\n시간 : " + min + "분 " + sec + "초");
+                            }
+                        }//end onFindPathDataAll
+                    }); //end findPathDataWithType
+
                 }catch(Exception e) {
                     e.printStackTrace();
                 }
-
             }
         }.start();
+
     }
 
     private void setMultiMarkers(ArrayList<TMapPoint> arrTPoint)
@@ -558,3 +585,4 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
     }
 
 }
+
