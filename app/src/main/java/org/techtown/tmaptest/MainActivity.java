@@ -1,6 +1,7 @@
 package org.techtown.tmaptest;
 
 import android.Manifest;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -43,18 +44,16 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
     // T Map GPS
     TMapGpsManager tMapGPS = null;
 
-    TMapPoint tMapPointStart = null;
     TMapPoint tMapPointEnd = null;
     String Distance = null;
     String Time = null;
 
-    TMapPOIItem POIItem = new TMapPOIItem();
+    ArrayList<String> arrPOI = new ArrayList<>();
 
     ConstraintLayout mainbuttonLayout;
     ConstraintLayout navibuttonLayout;
     ConstraintLayout lecbuttonLayout;
     ConstraintLayout etcbuttonLayout;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,6 +133,15 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
 
         //버튼별 경로탐색
         drawLineButton();
+
+        Button searchbtn = findViewById(R.id.search);
+        searchbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), SearchMain.class);
+                startActivityForResult(intent, 101);
+            }
+        });
 
 
         // 클릭 이벤트 설정
@@ -345,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
     }
 
 
-    /*private void searchPOI(ArrayList<String> arrPOI) {
+    private void searchPOI(ArrayList<String> arrPOI) {
         final TMapData tMapData = new TMapData();
         final ArrayList<TMapPoint> arrTMapPoint = new ArrayList<>();
         final ArrayList<String> arrTitle = new ArrayList<>();
@@ -363,11 +371,11 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
                                 tMapPOIItem.middleAddrName + " " + tMapPOIItem.lowerAddrName);
                         System.out.println(arrAddr);
                     }
-                    setMultiMarkers(arrTMapPoint, arrTitle, arrAddr);
+                    //setMultiMarkers(arrTMapPoint, arrTitle, arrAddr);
                 }
             });
         }
-    }*/
+    }
 
 
     private void getPOIPoint(ArrayList<String> arrPOI, int bldNum){
@@ -378,20 +386,20 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
         TMapPoint Now = new TMapPoint(tMapGPS.getLocation().getLatitude(), tMapGPS.getLocation().getLongitude());
 
         //for (int i = 0; i < arrPOI.size(); i++) {
-            tMapData.findTitlePOI(arrPOI.get(bldNum), new TMapData.FindTitlePOIListenerCallback() {
-                @Override
-                public void onFindTitlePOI(ArrayList<TMapPOIItem> arrayList) {
-                    TMapPOIItem tMapPOIItem = arrayList.get(0);
-                    arrTMapPoint.add(tMapPOIItem.getPOIPoint());
-                    arrTitle.add(tMapPOIItem.getPOIName());
-                    arrAddr.add(tMapPOIItem.upperAddrName + " " +
-                            tMapPOIItem.middleAddrName + " " + tMapPOIItem.lowerAddrName);
-                    System.out.println(arrAddr);
-                    tMapPointEnd = tMapPOIItem.getPOIPoint();
-                    setMultiMarkers(arrTMapPoint);
-                    drawPolyLine(Now, tMapPointEnd);
-                }
-            });
+        tMapData.findTitlePOI(arrPOI.get(bldNum), new TMapData.FindTitlePOIListenerCallback() {
+            @Override
+            public void onFindTitlePOI(ArrayList<TMapPOIItem> arrayList) {
+                TMapPOIItem tMapPOIItem = arrayList.get(0);
+                arrTMapPoint.add(tMapPOIItem.getPOIPoint());
+                arrTitle.add(tMapPOIItem.getPOIName());
+                arrAddr.add(tMapPOIItem.upperAddrName + " " +
+                        tMapPOIItem.middleAddrName + " " + tMapPOIItem.lowerAddrName);
+                System.out.println(arrAddr);
+                tMapPointEnd = tMapPOIItem.getPOIPoint();
+                setMultiMarkers(arrTMapPoint);
+                drawPolyLine(Now, tMapPointEnd);
+            }
+        });
         //}
 
     }
@@ -408,7 +416,7 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
     //버튼으로 길 찾기 함수 - 테스트용
     private void drawLineButton(){
         //ArrayList<TMapPoint> arrTMP = new ArrayList<>();  //TMapPoint 형식의 배열을 이용해서 처리할 수 있을까?
-        ArrayList<String> arrPOI = new ArrayList<>();
+        //ArrayList<String> arrPOI = new ArrayList<>();
         arrPOI.add("경기대학교 수원캠퍼스 진리관");
         arrPOI.add("경기대학교 수원캠퍼스 성신관");
         arrPOI.add("경기대학교 수원캠퍼스 애경관");
