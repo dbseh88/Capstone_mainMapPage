@@ -1,6 +1,7 @@
 package org.techtown.tmaptest;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -35,7 +36,7 @@ import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity implements TMapGpsManager.onLocationChangedCallback {
-
+    private static final int REQUEST_CODE = 101;
     String API_Key = "l7xx04eb869c4b064be4904d5fd75d609819";
 
     // T Map View
@@ -43,8 +44,10 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
 
     // T Map GPS
     TMapGpsManager tMapGPS = null;
-
     TMapPoint tMapPointEnd = null;
+    TMapPoint searchPoint = null;
+
+
     String Distance = null;
     String Time = null;
 
@@ -59,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         // T Map View
@@ -134,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
         //버튼별 경로탐색
         drawLineButton();
 
+        //검색창 Intent
         Button searchbtn = findViewById(R.id.search);
         searchbtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -231,6 +236,22 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
     }
 
 
+    @Override
+    protected void onActivityResult(int requetCode, int resultCode, Intent data) {
+        super.onActivityResult(101, resultCode, data);
+
+        if(requetCode == REQUEST_CODE) {
+            if(resultCode != Activity.RESULT_OK) {
+                return;
+            }
+            double search_lati = data.getExtras().getDouble("SearchMain_Lati");
+            double search_longi = data.getExtras().getDouble("SearchMain_Longi");
+
+            TMapPoint Now = new TMapPoint(tMapGPS.getLocation().getLatitude(), tMapGPS.getLocation().getLongitude());
+            searchPoint = new TMapPoint(search_lati, search_longi);
+            drawPolyLine(Now, searchPoint);
+        }
+    }
 
     @Override
     public void onLocationChange(Location location) {
@@ -396,7 +417,7 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
                         tMapPOIItem.middleAddrName + " " + tMapPOIItem.lowerAddrName);
                 System.out.println(arrAddr);
                 tMapPointEnd = tMapPOIItem.getPOIPoint();
-                setMultiMarkers(arrTMapPoint);
+                //setMultiMarkers(arrTMapPoint);
                 drawPolyLine(Now, tMapPointEnd);
             }
         });
@@ -593,4 +614,3 @@ public class MainActivity extends AppCompatActivity implements TMapGpsManager.on
     }
 
 }
-
